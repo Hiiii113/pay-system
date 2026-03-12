@@ -1,0 +1,105 @@
+package hiiii113.controller;
+
+import hiiii113.entity.User;
+import hiiii113.exception.BusinessException;
+import hiiii113.service.TransactionService;
+import hiiii113.service.UserService;
+import hiiii113.service.impl.TransactionServiceImpl;
+import hiiii113.service.impl.UserServiceImpl;
+
+import javax.servlet.annotation.WebServlet;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.io.UnsupportedEncodingException;
+import java.math.BigDecimal;
+import java.sql.SQLException;
+
+import static hiiii113.util.JsonUtil.sendJson;
+
+@WebServlet("/withdraw")
+public class WithdrawController extends HttpServlet
+{
+    // 实例化Service层
+    private final TransactionService transactionService = new TransactionServiceImpl();
+    private final UserService userService = new UserServiceImpl();
+
+    @Override
+    protected void doGet(HttpServletRequest request, HttpServletResponse response) throws IOException
+    {
+        // 安全规范：不支持GET请求登录
+        response.setStatus(HttpServletResponse.SC_METHOD_NOT_ALLOWED);
+        // 返回JSON数据
+        PrintWriter writer = response.getWriter();
+        sendJson(writer, 405, "取款方法不能使用GET请求", null);
+    }
+
+    @Override
+    protected void doPost(HttpServletRequest request, HttpServletResponse response)
+    {
+        // 设置编码和响应头
+        try
+        {
+            request.setCharacterEncoding("UTF-8");
+        }
+        catch (UnsupportedEncodingException e)
+        {
+            throw new RuntimeException(e);
+        }
+        response.setCharacterEncoding("UTF-8");
+        response.setContentType("application/json;charset=UTF-8");
+
+        PrintWriter writer = null;
+        try
+        {
+            // 获取输出流
+            writer = response.getWriter();
+
+            // 接收参数
+            String userIdStr = request.getParameter("userId");
+            String amountStr = request.getParameter("amount");
+
+            // 校验
+            if (amountStr == null || amountStr.isEmpty() || userIdStr == null || userIdStr.isEmpty())
+            {
+                sendJson(writer, 400, "金额和用户id不能为空", null);
+                return;
+            }
+
+            // 转化参数
+            Integer userId = Integer.parseInt(userIdStr.trim());
+            BigDecimal amount = new BigDecimal(amountStr.trim());
+
+            // 执行取款方法
+            transactionService.withdraw(userId, amount);
+
+            // 查看当前余额并返回
+            User user = userService.getUserById(userId);
+            BigDecimal balance = user.getBalance();
+
+            // 返回存款成功的提示
+            sendJson(writer, 200, "取款成功", balance);
+
+        }
+        catch (BusinessException e)
+        {
+            e.printStackTrace();
+            response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+            sendJson(writer, 400, e.getMessage(), null);
+        }
+        catch (SQLException e) // 数据库异常
+        {
+            e.printStackTrace();
+            response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+            sendJson(writer, 500, "数据库连接异常", null);
+        }
+        catch (Exception e) // 其他异常
+        {
+            e.printStackTrace();
+            response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+            sendJson(writer, 500, "服务器内部错误", null);
+        }
+    }
+}

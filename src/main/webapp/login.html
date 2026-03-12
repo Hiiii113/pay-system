@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>QG申必小金库 - 登录</title>
+    <!-- 引入Vue 和 axios -->
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+</head>
+<body>
+
+<h1 id="title">QG申必小金库</h1>
+
+<div id="app">
+    <h2>用户登录</h2>
+
+    <div>
+        <label for="username">用户名</label>
+        <input
+                type="text"
+                id="username"
+                v-model="username"
+                placeholder="请输入用户名"
+                @keyup.enter="handleLogin"
+        >
+    </div>
+
+    <div>
+        <label for="password">密码</label>
+        <input
+                type="password"
+                id="password"
+                v-model="password"
+                placeholder="请输入密码"
+                @keyup.enter="handleLogin"
+        >
+    </div>
+
+    <button @click="handleLogin">登 录</button>
+
+    <p class="loginMessage">{{ loginMessage }}</p>
+</div>
+
+<script>
+    const {createApp} = Vue;
+
+    const app = createApp({
+        data() {
+            return {
+                username: '', // 记录输入的用户名
+                password: '', // 记录输入的密码
+                loginMessage: '', // 记录登录信息
+                loginSuccess: false // 记录是否登录成功
+            }
+        },
+        methods: {
+            // 处理登录的函数
+            async handleLogin() {
+                // 表单验证
+                if (!this.username.trim()) {
+                    this.showMessage('请输入用户名！', false);
+                    return;
+                }
+                if (!this.password.trim()) {
+                    this.showMessage('请输入密码！', false);
+                    return;
+                }
+
+                // 创建URLSearchParams对象
+                const params = new URLSearchParams();
+                params.append('username', this.username);
+                params.append('password', this.password);
+
+                try {
+                    const response = await axios({
+                        method: 'post',
+                        url: 'http://localhost:8081/pay_system_war_exploded/login',
+                        data: params,
+                        headers: {
+                            'Content-Type': 'application/x-www-form-urlencoded'
+                        }
+                    });
+                    if (response.data.code === 200) {
+                        // 返回提示信息
+                        this.showMessage('登录成功！正在跳转...', true);
+
+                        // 保存用户信息
+                        const username = response.data.data.username;
+                        const userId = response.data.data.id;
+                        const balance = response.data.data.balance;
+                        sessionStorage.setItem('isLoggedIn', 'true');
+                        sessionStorage.setItem('username', username);
+                        sessionStorage.setItem('userId', userId);
+                        sessionStorage.setItem('balance', balance);
+
+                        // 1.5秒后跳转到操作页面
+                        setTimeout(() => {
+                            window.location.href = 'http://localhost:8081/pay_system_war_exploded/main.html';
+                        }, 1500);
+                    }
+                } catch (error) {
+                    console.error('请求失败:', error);
+                    if (error.response) {
+                        // 服务器返回了信息
+                        this.showMessage('登录失败！' + (error.response.data.msg || '请稍后重试'), false);
+                    } else if (error.request) {
+                        // 请求发送了但没有收到响应
+                        this.showMessage('无法连接到服务器，请检查网络', false);
+                    } else {
+                        this.showMessage('请求失败：' + error.message, false);
+                    }
+                }
+            },
+            // 处理提示信息
+            showMessage(msg, isSuccess) {
+                this.loginMessage = msg;
+                this.loginSuccess = isSuccess;
+                // 自动清除消息
+                if (!isSuccess)
+                {
+                    setTimeout(() => {
+                        this.loginMessage = '';
+                    }, 3000);
+                }
+            }
+        }
+    });
+
+    app.mount("#app");
+</script>
+
+</body>
+</html>

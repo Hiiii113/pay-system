@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>QG申必小金库</title>
+    <!-- 引入Vue 和 axios -->
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+</head>
+<body>
+<div id="app">
+    <!-- 标题 -->
+    <h2>💰QG申必小金库💰</h2>
+
+    <!-- 用户信息 -->
+    <p>当前用户：{{ username }}（id：{{ userId }}）</p>
+    <p>余额：¥{{ currentBalance }}</p>
+
+    <!-- 功能菜单 -->
+    <ul>
+        <li @click="currentView = 'deposit'">存款（上交保护费预备）</li>
+        <li @click="currentView = 'withdraw'">取款（卷钱跑路）</li>
+        <li @click="currentView = 'transfer'">转账（上交保护费）</li>
+        <li @click="currentView = 'transactions'">查看交易流水</li>
+    </ul>
+
+    <!-- 存款表单容器 -->
+    <div v-if="currentView === 'deposit'">
+        <label for="deposit">存款</label>
+        <input id="deposit" v-model.number="depositForm.amount" type="number" placeholder="存款金额">
+        <button @click="handleDeposit">确认存款</button>
+    </div>
+
+    <!-- 取款表单容器 -->
+    <div v-if="currentView === 'withdraw'">
+        <label for="withdraw">取款</label>
+        <input id="withdraw" v-model.number="withdrawForm.amount" type="number" placeholder="取款金额">
+        <button @click="handleWithdraw">确认取款</button>
+    </div>
+
+    <!-- 转账表单容器 -->
+    <div v-if="currentView === 'transfer'">
+        <label for="transfer">转账</label>
+        <input id="transfer" v-model.number="transferForm.targetUserId" placeholder="对方账号">
+        <input v-model.number="transferForm.amount" type="number" placeholder="转账金额">
+        <button @click="handleTransfer">确认转账</button>
+    </div>
+
+    <!-- 交易流水容器 -->
+    <div v-if="currentView === 'transactions'">
+        <h3>交易流水</h3>
+        <button @click="handleGetTransactions">查 询</button>
+        <table>
+            <thead>
+            <tr>
+                <th>时间</th>
+                <th>类型</th>
+                <th>金额</th>
+                <th>余额</th>
+                <th>对方/备注</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr v-for="tx in transactions" :key="tx.id">
+                <td>{{ tx.createTime }}</td>
+                <td>{{ tx.type }}</td>
+                <td>
+                    {{ tx.amount.toFixed(2) }}
+                </td>
+                <td>{{tx.newBalance}}</td>
+                <td>{{ tx.targetUserId || '-' }}</td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <div v-if="message">
+        <!--提示信息-->
+        {{ message }}
+    </div>
+</div>
+
+<script>
+    const {createApp} = Vue;
+
+    const app = createApp({
+        data() {
+            return {
+                depositForm: {
+                    amount: 0,
+                },
+                withdrawForm: {
+                    amount: 0,
+                },
+                transferForm: {
+                    targetUserId: '',
+                    amount: 0,
+                },
+                transactions: [],
+                currentView: 'deposit',
+                username: '',
+                userId: undefined,
+                currentBalance: 0,
+                message: ''
+            }
+        },
+        methods: {
+            async handleDeposit() {
+                // 检验是否为空
+                if (!this.depositForm.amount) {
+                    alert('金额不能为空！');
+                    return;
+                }
+
+                // 创建params对象
+                const params = new URLSearchParams();
+                params.append('amount', this.depositForm.amount);
+                params.append('userId', this.userId);
+
+                // 开始请求
+                try {
+                    const response = await axios({
+                        method: 'post',
+                        url: 'http://localhost:8081/pay_system_war_exploded/deposit',
+                        data: params,
+                        headers: {
+                            'Content-Type': 'application/x-www-form-urlencoded'
+                        }
+                    });
+                    if (response.data.code === 200) {
+                        // 返回提示信息
+                        this.showMessage(response.data.msg);
+
+                        // 更新用户信息
+                        this.currentBalance = response.data.data;
+                    }
+                } catch (error) {
+                    if (error.response) {
+                        // 服务器返回了信息
+                        this.showMessage('存款失败！' + (error.response.data.msg || '请稍后重试'));
+                    } else if (error.request) {
+                        // 请求发送了但没有收到响应
+                        this.showMessage('无法连接到服务器，请检查网络');
+                    } else {
+                        this.showMessage('请求失败：' + error.message);
+                    }
+                }
+            },
+            async handleWithdraw() {
+                // 检验是否为空
+                if (!this.withdrawForm.amount) {
+                    alert('金额不能为空！');
+                    return;
+                }
+
+                // 创建params对象
+                const params = new URLSearchParams();
+                params.append('amount', this.withdrawForm.amount);
+                params.append('userId', this.userId);
+
+                // 开始请求
+                try {
+                    const response = await axios({
+                        method: 'post',
+                        url: 'http://localhost:8081/pay_system_war_exploded/withdraw',
+                        data: params,
+                        headers: {
+                            'Content-Type': 'application/x-www-form-urlencoded'
+                        }
+                    });
+                    if (response.data.code === 200) {
+                        // 返回提示信息
+                        this.showMessage(response.data.msg);
+
+                        // 更新用户信息
+                        this.currentBalance = response.data.data;
+                    }
+                } catch (error) {
+                    if (error.response) {
+                        // 服务器返回了信息
+                        this.showMessage('取款失败！' + (error.response.data.msg || '请稍后重试'));
+                    } else if (error.request) {
+                        // 请求发送了但没有收到响应
+                        this.showMessage('无法连接到服务器，请检查网络');
+                    } else {
+                        this.showMessage('请求失败：' + error.message);
+                    }
+                }
+            },
+            async handleTransfer() {
+                // 检验是否为空
+                if (!this.transferForm.amount) {
+                    alert('金额不能为空！');
+                    return;
+                }
+                if (!this.transferForm.targetUserId) {
+                    alert('转账用户id不能为空！');
+                    return;
+                }
+
+                // 创建params对象
+                const params = new URLSearchParams();
+                params.append('amount', this.transferForm.amount);
+                params.append('userId', this.userId);
+                params.append('targetUserId', this.transferForm.targetUserId);
+
+                // 开始请求
+                try {
+                    const response = await axios({
+                        method: 'post',
+                        url: 'http://localhost:8081/pay_system_war_exploded/transfer',
+                        data: params,
+                        headers: {
+                            'Content-Type': 'application/x-www-form-urlencoded'
+                        }
+                    });
+                    if (response.data.code === 200) {
+                        // 返回提示信息
+                        this.showMessage(response.data.msg);
+
+                        // 更新用户信息
+                        this.currentBalance = response.data.data;
+                    }
+                } catch (error) {
+                    if (error.response) {
+                        // 服务器返回了信息
+                        this.showMessage('转账失败！' + (error.response.data.msg || '请稍后重试'));
+                    } else if (error.request) {
+                        // 请求发送了但没有收到响应
+                        this.showMessage('无法连接到服务器，请检查网络');
+                    } else {
+                        this.showMessage('请求失败：' + error.message);
+                    }
+                }
+            },
+            async handleGetTransactions() {
+                // 创建params对象
+                const params = new URLSearchParams();
+                params.append('userId', this.userId);
+
+                // 开始请求
+                try {
+                    const response = await axios({
+                        method: 'post',
+                        url: 'http://localhost:8081/pay_system_war_exploded/getTransactions',
+                        data: params,
+                        headers: {
+                            'Content-Type': 'application/x-www-form-urlencoded'
+                        }
+                    });
+                    if (response.data.code === 200) {
+                        // 更新
+                        this.transactions = response.data.data;
+                    }
+                } catch (error) {
+                    if (error.response) {
+                        // 服务器返回了信息
+                        this.showMessage('转账失败！' + (error.response.data.msg || '请稍后重试'));
+                    } else if (error.request) {
+                        // 请求发送了但没有收到响应
+                        this.showMessage('无法连接到服务器，请检查网络');
+                    } else {
+                        this.showMessage('请求失败：' + error.message);
+                    }
+                }
+            },
+            updateBalance(balance) {
+                this.currentBalance = balance;
+            },
+            showMessage(message) {
+                this.message = message;
+                setTimeout(() => {
+                    this.message = '';
+                }, 3000);
+            }
+        },
+        created() {
+            this.username = sessionStorage.getItem('username');
+            this.userId = sessionStorage.getItem('userId');
+            this.currentBalance = sessionStorage.getItem('balance');
+            const isLoggedIn = sessionStorage.getItem('isLoggedIn');
+            if (!isLoggedIn || isLoggedIn !== 'true') {
+                alert('请先登录！');
+                window.location.href = 'http://localhost:8081/pay_system_war_exploded/login.html';
+            }
+        }
+    });
+    app.mount('#app');
+</script>
+</body>
+</html>

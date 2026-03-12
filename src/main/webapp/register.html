@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>QG申必小金库 - 注册</title>
+    <!-- 引入Vue 和 axios -->
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+</head>
+<body>
+<h1 id="title">QG申必小金库</h1>
+
+<div id="app">
+    <h2>用户注册</h2>
+
+    <div>
+        <label for="username">用户名</label>
+        <input
+                type="text"
+                id="username"
+                v-model="username"
+                placeholder="请输入用户名"
+                @keyup.enter="handleRegister"
+        >
+    </div>
+
+    <div>
+        <label for="password">密码</label>
+        <input
+                type="password"
+                id="password"
+                v-model="password"
+                placeholder="请输入密码"
+                @keyup.enter="handleRegister"
+        >
+    </div>
+
+    <button @click="handleRegister">注 册</button>
+
+    <p class="loginMessage">{{ registerMessage }}</p>
+</div>
+
+<script>
+    const {createApp} = Vue;
+
+    const app = createApp({
+        data() {
+            return {
+                username: '', // 记录输入的用户名
+                password: '', // 记录输入的密码
+                RegisterMessage: '', // 记录注册信息
+                RegisterSuccess: false, // 记录是否注册成功
+                registerMessage: '', // 提示注册信息
+            }
+        },
+        methods: {
+            async handleRegister() {
+                // 表单验证
+                if (!this.username.trim()) {
+                    this.showMessage('请输入用户名！', false);
+                    return;
+                }
+                if (!this.password.trim()) {
+                    this.showMessage('请输入密码！', false);
+                    return;
+                }
+
+                // 创建URLSearchParams对象
+                const params = new URLSearchParams();
+                params.append('username', this.username);
+                params.append('password', this.password);
+
+                try {
+                    const response = await axios({
+                        method: 'post',
+                        url: 'http://localhost:8081/pay_system_war_exploded/register',
+                        data: params,
+                        headers: {
+                            'Content-Type': 'application/x-www-form-urlencoded'
+                        }
+                    });
+                    if (response.data.code === 201) {
+                        // 返回提示信息
+                        this.showMessage('注册成功！正在跳转...', true);
+
+                        // 1.5秒后跳转到登录页面
+                        setTimeout(() => {
+                            window.location.href = 'http://localhost:8081/pay_system_war_exploded/login.html';
+                        }, 1500);
+                    }
+                } catch (error) {
+                    if (error.response) {
+                        // 服务器返回了信息
+                        this.showMessage('注册失败！' + (error.response.data.msg || '请稍后重试'));
+                    } else if (error.request) {
+                        // 请求发送了但没有收到响应
+                        this.showMessage('无法连接到服务器，请检查网络');
+                    } else {
+                        this.showMessage('请求失败：' + error.message);
+                    }
+                }
+            },
+            showMessage(msg) {
+                this.registerMessage = msg;
+
+                setTimeout(() => {
+                    this.registerMessage = '';
+                }, 3000);
+            }
+        }
+    });
+    app.mount('#app');
+</script>
+</body>
+</html>
