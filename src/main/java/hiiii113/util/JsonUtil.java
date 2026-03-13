@@ -1,11 +1,24 @@
 package hiiii113.util;
 
-import com.alibaba.fastjson.JSON;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 
 import java.io.PrintWriter;
+import java.util.HashMap;
+import java.util.Map;
 
 public class JsonUtil
 {
+    private static final ObjectMapper mapper = new ObjectMapper();
+
+    static
+    {
+        mapper.registerModule(new JavaTimeModule());
+        mapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
+    }
+
     /**
      * 统一发送 JSON 响应的辅助方法
      *
@@ -16,18 +29,22 @@ public class JsonUtil
      */
     public static void sendJson(PrintWriter writer, int code, String msg, Object data)
     {
-        if (writer == null) return;
+        Map<String, Object> result = new HashMap<>();
+        result.put("code", code);
+        result.put("msg", msg);
+        result.put("data", data);
 
-        String dataStr = (data == null) ? "null" : JSON.toJSONString(data);
+        try
+        {
+            String jsonStr = mapper.writeValueAsString(result);
 
-        StringBuilder json = new StringBuilder();
-        json.append("{")
-                .append("\"code\":").append(code).append(",")
-                .append("\"msg\":\"").append(msg.replace("\"", "\\\"")).append("\",")
-                .append("\"data\":").append(dataStr)
-                .append("}");
-
-        writer.write(json.toString());
-        writer.flush();
+            writer.print(jsonStr);
+            writer.flush();
+        }
+        catch (Exception e)
+        {
+            e.printStackTrace();
+            writer.print("{\"code\":500,\"msg\":\"服务器JSON转换异常\",\"data\":null}");
+        }
     }
 }

@@ -1,7 +1,8 @@
 package hiiii113.controller;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import hiiii113.entity.TransactionRecord;
-import hiiii113.entity.User;
 import hiiii113.exception.BusinessException;
 import hiiii113.service.TransactionService;
 import hiiii113.service.impl.TransactionServiceImpl;
@@ -13,7 +14,6 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.UnsupportedEncodingException;
-import java.math.BigDecimal;
 import java.sql.SQLException;
 import java.util.List;
 
@@ -57,17 +57,19 @@ public class getTransactionsController extends HttpServlet
             writer = response.getWriter();
 
             // 接收参数
-            String userIdStr = request.getParameter("userId");
+            ObjectMapper mapper = new ObjectMapper();
+            JsonNode root = mapper.readTree(request.getInputStream());
+            JsonNode userIdNode = root.get("userId");
 
             // 校验
-            if (userIdStr == null || userIdStr.isEmpty())
+            if (userIdNode == null)
             {
                 sendJson(writer, 400, "用户id不能为空", null);
                 return;
             }
 
             // 转化参数
-            Integer userId = Integer.parseInt(userIdStr.trim());
+            int userId = userIdNode.asInt();
 
             // 执行存款操作
             List<TransactionRecord> transactions = transactionService.getTransactionRecord(userId);

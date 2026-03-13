@@ -232,8 +232,8 @@ public class TransactionServiceImpl implements TransactionService
                 throw new BusinessException("数据库出现问题!");
             }
             // 添加一条交易流水
-            int userTransactionInfectedRows = transactionRecordDao.addTransaction(conn, userId, 3, amount, targetUserId, newUserBalance);
-            int targetUserTransactionInfectedRows = transactionRecordDao.addTransaction(conn, targetUserId, 4, amount, userId, newTargetUserBalance);
+            int userTransactionInfectedRows = transactionRecordDao.addTransaction(conn, userId, 4, amount, targetUserId, newUserBalance);
+            int targetUserTransactionInfectedRows = transactionRecordDao.addTransaction(conn, targetUserId, 3, amount, userId, newTargetUserBalance);
             if (userTransactionInfectedRows == 0 || targetUserTransactionInfectedRows == 0)
             {
                 throw new BusinessException("数据库出现问题!");

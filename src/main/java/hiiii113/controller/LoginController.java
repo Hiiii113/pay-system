@@ -1,5 +1,7 @@
 package hiiii113.controller;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import hiiii113.entity.User;
 import hiiii113.exception.BusinessException;
 import hiiii113.service.UserService;
@@ -58,16 +60,21 @@ public class LoginController extends HttpServlet
             writer = response.getWriter();
 
             // 获取参数
-            String username = request.getParameter("username");
-            String password = request.getParameter("password");
+            ObjectMapper mapper = new ObjectMapper();
+            JsonNode root = mapper.readTree(request.getInputStream());
+            // 提取参数
+            JsonNode usernameNode = root.get("username");
+            JsonNode passwordNode = root.get("password");
 
             // 校验
-            if (username == null || username.trim().isEmpty() ||
-                    password == null || password.trim().isEmpty())
+            if (usernameNode == null || passwordNode == null)
             {
                 sendJson(writer, 400, "用户名和密码不能为空", null);
                 return;
             }
+
+            String username = usernameNode.asText();
+            String password = passwordNode.asText();
 
             // 调用Service层的登录函数
             boolean isSuccess = userService.Login(username, password);

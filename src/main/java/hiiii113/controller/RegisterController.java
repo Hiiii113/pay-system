@@ -1,5 +1,7 @@
 package hiiii113.controller;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import hiiii113.entity.User;
 import hiiii113.exception.BusinessException;
 import hiiii113.service.UserService;
@@ -56,16 +58,24 @@ public class RegisterController extends HttpServlet
             writer = response.getWriter();
 
             // 获取参数
-            String username = request.getParameter("username");
-            String password = request.getParameter("password");
+            ObjectMapper mapper = new ObjectMapper();
+            JsonNode root = mapper.readTree(request.getInputStream());
+            // 提取参数
+            JsonNode usernameNode = root.get("username");
+            JsonNode passwordNode = root.get("password");
 
             // 校验
             // 先看传入的用户名和密码是否为空
-            if (username == null || username.isEmpty() || password == null || password.isEmpty())
+            if (usernameNode == null || passwordNode == null)
             {
                 sendJson(writer, 400, "用户名和密码不能为空", null);
                 return;
             }
+
+            // 转化参数
+            String username = usernameNode.asText();
+            String password = passwordNode.asText();
+
             // 先看用户名是否重复
             User user = userService.getUserByUsername(username);
             if (user != null)

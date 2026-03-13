@@ -6,6 +6,7 @@
     <!-- 引入Vue 和 axios -->
     <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
     <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+    <script src="request.js"></script>
 </head>
 <body>
 <h1 id="title">QG申必小金库</h1>
@@ -65,40 +66,27 @@
                     return;
                 }
 
-                // 创建URLSearchParams对象
-                const params = new URLSearchParams();
-                params.append('username', this.username);
-                params.append('password', this.password);
+                // 创建对象
+                const register = {
+                    username: this.username,
+                    password: this.password,
+                }
 
-                try {
-                    const response = await axios({
-                        method: 'post',
-                        url: 'http://localhost:8081/pay_system_war_exploded/register',
-                        data: params,
-                        headers: {
-                            'Content-Type': 'application/x-www-form-urlencoded'
-                        }
-                    });
-                    if (response.data.code === 201) {
-                        // 返回提示信息
-                        this.showMessage('注册成功！正在跳转...', true);
-
-                        // 1.5秒后跳转到登录页面
-                        setTimeout(() => {
-                            window.location.href = 'http://localhost:8081/pay_system_war_exploded/login.html';
-                        }, 1500);
-                    }
-                } catch (error) {
+                post("/register", register).then(res => {
+                    this.showMessage('注册成功！正在跳转...', true);
+                    // 1.5秒后跳转到登录页面
+                    setTimeout(() => {
+                        window.location.href = 'http://localhost:8081/pay_system_war_exploded/login.html';
+                    }, 1500);
+                }).catch(err => {
+                    console.log(err);
                     if (error.response) {
                         // 服务器返回了信息
-                        this.showMessage('注册失败！' + (error.response.data.msg || '请稍后重试'));
-                    } else if (error.request) {
-                        // 请求发送了但没有收到响应
-                        this.showMessage('无法连接到服务器，请检查网络');
+                        this.showMessage('注册失败！' + (error.response.data.msg || '请稍后重试'), false);
                     } else {
-                        this.showMessage('请求失败：' + error.message);
+                        this.showMessage('无法连接到服务器，请检查网络', false);
                     }
-                }
+                })
             },
             showMessage(msg) {
                 this.registerMessage = msg;

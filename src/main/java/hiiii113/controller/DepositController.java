@@ -1,5 +1,7 @@
 package hiiii113.controller;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import hiiii113.entity.User;
 import hiiii113.exception.BusinessException;
 import hiiii113.service.TransactionService;
@@ -58,19 +60,21 @@ public class DepositController extends HttpServlet
             writer = response.getWriter();
 
             // 接收参数
-            String userIdStr = request.getParameter("userId");
-            String amountStr = request.getParameter("amount");
+            ObjectMapper mapper = new ObjectMapper();
+            JsonNode root = mapper.readTree(request.getInputStream());
+            JsonNode userIdNode = root.get("userId");
+            JsonNode amountNode = root.get("amount");
 
             // 校验
-            if (amountStr == null || amountStr.isEmpty() || userIdStr == null || userIdStr.isEmpty())
+            if (userIdNode == null || amountNode == null)
             {
                 sendJson(writer, 400, "金额和用户id不能为空", null);
                 return;
             }
 
             // 转化参数
-            Integer userId = Integer.parseInt(userIdStr.trim());
-            BigDecimal amount = new BigDecimal(amountStr.trim());
+            int userId = userIdNode.asInt();
+            BigDecimal amount = new BigDecimal(amountNode.asText());
 
             // 执行存款操作
             transactionService.deposit(userId, amount);
