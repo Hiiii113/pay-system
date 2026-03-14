@@ -2,10 +2,10 @@ package hiiii113.controller;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import hiiii113.entity.TransactionRecord;
+import hiiii113.entity.User;
 import hiiii113.exception.BusinessException;
-import hiiii113.service.TransactionService;
-import hiiii113.service.impl.TransactionServiceImpl;
+import hiiii113.service.UserService;
+import hiiii113.service.impl.UserServiceImpl;
 
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
@@ -15,15 +15,14 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.UnsupportedEncodingException;
 import java.sql.SQLException;
-import java.util.List;
 
 import static hiiii113.util.JsonUtil.sendJson;
 
-@WebServlet("/getTransactions")
-public class getTransactionsController extends HttpServlet
+@WebServlet("/userInfo")
+public class GetUserInfoController extends HttpServlet
 {
     // 实例化Service层
-    private final TransactionService transactionService = new TransactionServiceImpl();
+    private final UserService userService = new UserServiceImpl();
 
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response) throws IOException
@@ -32,7 +31,7 @@ public class getTransactionsController extends HttpServlet
         response.setStatus(HttpServletResponse.SC_METHOD_NOT_ALLOWED);
         // 返回JSON数据
         PrintWriter writer = response.getWriter();
-        sendJson(writer, 405, "获取交易流水方法不能使用GET请求", null);
+        sendJson(writer, 405, "获取用户信息方法不能使用GET请求", null);
     }
 
     @Override
@@ -56,9 +55,10 @@ public class getTransactionsController extends HttpServlet
             // 获取输出流
             writer = response.getWriter();
 
-            // 接收参数
+            // 获取参数
             ObjectMapper mapper = new ObjectMapper();
             JsonNode root = mapper.readTree(request.getInputStream());
+            // 提取参数
             JsonNode userIdNode = root.get("userId");
 
             // 校验
@@ -68,14 +68,13 @@ public class getTransactionsController extends HttpServlet
                 return;
             }
 
-            // 转化参数
             int userId = userIdNode.asInt();
 
-            // 执行存款操作
-            List<TransactionRecord> transactions = transactionService.getTransactionRecord(userId);
+            // 调用Service层的获取用户对象函数
+            User user = userService.getUserById(userId);
 
-            // 返回存款成功的提示
-            sendJson(writer, 200, "存款成功", transactions);
+            sendJson(writer, 200, null, user);
+
         }
         catch (BusinessException e)
         {

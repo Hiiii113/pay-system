@@ -1,4 +1,4 @@
-// import axios from 'axios';
+import axios from 'axios';
 
 // 创建axios实例
 const instance = axios.create({
@@ -27,12 +27,12 @@ instance.interceptors.response.use(
 )
 
 // 封装get和post请求
-window.get = function (url, params) {
+export const get = function (url, params) {
     // url: 路径地址  params: 参数
     return instance.get(url, {params})
 }
 
-window.post = function (url, data) {
+export const post = function (url, data) {
     // url: 路径地址  data: 数据
     return instance.post(url, data)
 }
