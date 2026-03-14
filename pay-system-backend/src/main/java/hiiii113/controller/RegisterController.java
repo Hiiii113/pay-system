@@ -33,6 +33,7 @@ public class RegisterController extends HttpServlet
         response.setStatus(HttpServletResponse.SC_METHOD_NOT_ALLOWED);
         // 返回JSON数据
         PrintWriter writer = response.getWriter();
+        response.setStatus(HttpServletResponse.SC_METHOD_NOT_ALLOWED);
         sendJson(writer, 405, "注册方法不能使用GET请求", null);
     }
 
@@ -68,6 +69,7 @@ public class RegisterController extends HttpServlet
             // 先看传入的用户名和密码是否为空
             if (usernameNode == null || passwordNode == null)
             {
+                response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
                 sendJson(writer, 400, "用户名和密码不能为空", null);
                 return;
             }
@@ -80,6 +82,7 @@ public class RegisterController extends HttpServlet
             User user = userService.getUserByUsername(username);
             if (user != null)
             {
+                response.setStatus(HttpServletResponse.SC_CONFLICT);
                 sendJson(writer, 409, "用户名已存在", null);
                 return;
             }
@@ -88,10 +91,12 @@ public class RegisterController extends HttpServlet
             try
             {
                 userService.Register(username, password);
+                response.setStatus(HttpServletResponse.SC_CREATED);
                 sendJson(writer, 201, "用户注册成功！", null);
             }
             catch (BusinessException e)
             {
+                response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
                 sendJson(writer, 400, e.getMessage(), null);
             }
         }

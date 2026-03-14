@@ -37,6 +37,7 @@ public class TransferController extends HttpServlet
         response.setStatus(HttpServletResponse.SC_METHOD_NOT_ALLOWED);
         // 返回JSON数据
         PrintWriter writer = response.getWriter();
+        response.setStatus(HttpServletResponse.SC_METHOD_NOT_ALLOWED);
         sendJson(writer, 405, "转账方法不能使用GET请求", null);
     }
 
@@ -71,6 +72,7 @@ public class TransferController extends HttpServlet
             // 校验
             if (userIdNode == null || targetUserIdNode == null || amountNode == null)
             {
+                response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
                 sendJson(writer, 400, "金额和用户id不能为空", null);
                 return;
             }
@@ -88,6 +90,7 @@ public class TransferController extends HttpServlet
             BigDecimal balance = user.getBalance();
 
             // 返回转账成功的提示
+            response.setStatus(HttpServletResponse.SC_OK);
             sendJson(writer, 200, "转账成功", balance);
         }
         catch (BusinessException e)

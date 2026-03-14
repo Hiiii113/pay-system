@@ -35,6 +35,7 @@ public class WithdrawController extends HttpServlet
         response.setStatus(HttpServletResponse.SC_METHOD_NOT_ALLOWED);
         // 返回JSON数据
         PrintWriter writer = response.getWriter();
+        response.setStatus(HttpServletResponse.SC_METHOD_NOT_ALLOWED);
         sendJson(writer, 405, "取款方法不能使用GET请求", null);
     }
 
@@ -68,6 +69,7 @@ public class WithdrawController extends HttpServlet
             // 校验
             if (userIdNode == null || amountNode == null)
             {
+                response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
                 sendJson(writer, 400, "金额和用户id不能为空", null);
                 return;
             }
@@ -84,6 +86,7 @@ public class WithdrawController extends HttpServlet
             BigDecimal balance = user.getBalance();
 
             // 返回存款成功的提示
+            response.setStatus(HttpServletResponse.SC_OK);
             sendJson(writer, 200, "取款成功", balance);
 
         }

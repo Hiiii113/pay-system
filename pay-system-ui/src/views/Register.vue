@@ -1,6 +1,6 @@
 <template>
     <div>
-        <h1 id="title">QG申必小金库</h1>
+        <h1 id="title">QG申必小金库 - 注册</h1>
         <h2>用户注册</h2>
 
         <div>
@@ -24,6 +24,7 @@
         </div>
 
         <button @click="handleRegister">注 册</button>
+        <button @click="toLogin">点击跳转登录</button>
 
         <p class="loginMessage">{{ registerMessage }}</p>
     </div>
@@ -75,6 +76,10 @@ const handleRegister = () => {
             showMessage('无法连接到服务器，请检查网络设置！')
         }
     })
+}
+
+const toLogin = () => {
+    router.push('/login')
 }
 
 </script>

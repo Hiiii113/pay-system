@@ -31,6 +31,7 @@ public class GetUserInfoController extends HttpServlet
         response.setStatus(HttpServletResponse.SC_METHOD_NOT_ALLOWED);
         // 返回JSON数据
         PrintWriter writer = response.getWriter();
+        response.setStatus(HttpServletResponse.SC_METHOD_NOT_ALLOWED);
         sendJson(writer, 405, "获取用户信息方法不能使用GET请求", null);
     }
 
@@ -64,6 +65,7 @@ public class GetUserInfoController extends HttpServlet
             // 校验
             if (userIdNode == null)
             {
+                response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
                 sendJson(writer, 400, "用户id不能为空", null);
                 return;
             }
@@ -72,7 +74,7 @@ public class GetUserInfoController extends HttpServlet
 
             // 调用Service层的获取用户对象函数
             User user = userService.getUserById(userId);
-
+            response.setStatus(HttpServletResponse.SC_OK);
             sendJson(writer, 200, null, user);
 
         }

@@ -35,6 +35,7 @@ public class LoginController extends HttpServlet
         response.setStatus(HttpServletResponse.SC_METHOD_NOT_ALLOWED);
         // 返回JSON数据
         PrintWriter writer = response.getWriter();
+        response.setStatus(HttpServletResponse.SC_METHOD_NOT_ALLOWED);
         sendJson(writer, 405, "登录方法不能使用GET请求", null);
     }
 
@@ -69,6 +70,7 @@ public class LoginController extends HttpServlet
             // 校验
             if (usernameNode == null || passwordNode == null)
             {
+                response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
                 sendJson(writer, 400, "用户名和密码不能为空", null);
                 return;
             }
@@ -85,6 +87,7 @@ public class LoginController extends HttpServlet
                 // 登录成功
                 // 通过用户名获取用户对象并返回
                 User user = userService.getUserByUsername(username);
+                response.setStatus(HttpServletResponse.SC_OK);
                 sendJson(writer, 200, "登录成功", user);
             }
             else

@@ -32,6 +32,7 @@ public class GetTransactionsController extends HttpServlet
         response.setStatus(HttpServletResponse.SC_METHOD_NOT_ALLOWED);
         // 返回JSON数据
         PrintWriter writer = response.getWriter();
+        response.setStatus(HttpServletResponse.SC_METHOD_NOT_ALLOWED);
         sendJson(writer, 405, "获取交易流水方法不能使用GET请求", null);
     }
 
@@ -64,6 +65,7 @@ public class GetTransactionsController extends HttpServlet
             // 校验
             if (userIdNode == null)
             {
+                response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
                 sendJson(writer, 400, "用户id不能为空", null);
                 return;
             }
@@ -75,6 +77,7 @@ public class GetTransactionsController extends HttpServlet
             List<TransactionRecord> transactions = transactionService.getTransactionRecord(userId);
 
             // 返回存款成功的提示
+            response.setStatus(HttpServletResponse.SC_OK);
             sendJson(writer, 200, "存款成功", transactions);
         }
         catch (BusinessException e)

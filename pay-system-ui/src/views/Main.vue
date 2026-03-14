@@ -74,7 +74,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import {onMounted, ref} from 'vue'
 import {useRouter} from 'vue-router'
 import {post} from "@/utils/request.js";
 
@@ -239,3 +239,24 @@ const handleGetTransactions = async () => {
 }
 
 </script>
+
+<style scoped>
+
+table {
+    border-collapse: collapse;
+    width: 70%;
+    margin: 20px 0;
+}
+
+th, td {
+    border: 1px solid black;
+    padding: 12px;
+    text-align: left;
+}
+
+th {
+    background-color: #CDCDCD;
+    font-weight: bold;
+}
+
+</style>
